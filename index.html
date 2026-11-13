@@ -1,0 +1,472 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Building Better Worlds · HOIV screen</title>
+<!--
+  The Building Better Worlds lobby screen: a 9:16 page for Yodeck (13–14 Nov 2026).
+  Five slides in turn — the event, HOIV, the agenda, past hackathons, what's coming up at HOIV —
+  on a 1080x1920 stage scaled to whatever the player reports. Built like events.hoiv.me/screen for a
+  small player: one opacity fade through black, no blur, no filters; animations run only on the slide
+  that is showing. Everything it needs is in assets/, so a dropped network never blanks it.
+
+  Address options (all optional):
+    ?slides=bbw,hoiv,agenda,photos,coming   which slides, in which order
+    ?speed=1.5                              multiply every slide's time
+    ?hold=agenda                            stay on one slide (for checking)
+    ?now=2026-11-14T15:30:00%2B01:00        pretend it is that time (for checking)
+    ?lite=1                                 no WebGL: a CSS shine on the title instead
+-->
+<style>
+@font-face{font-family:"Archivo Black";font-weight:400;font-display:block;src:url(assets/fonts/archivo-black-latin.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:"Archivo Black";font-weight:400;font-display:block;src:url(assets/fonts/archivo-black-latin-ext.woff2) format("woff2");unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
+@font-face{font-family:"JetBrains Mono";font-weight:100 800;font-display:block;src:url(assets/fonts/jetbrains-mono-latin.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:"JetBrains Mono";font-weight:100 800;font-display:block;src:url(assets/fonts/jetbrains-mono-latin-ext.woff2) format("woff2");unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
+@font-face{font-family:"Geist";font-weight:100 900;font-display:block;src:url(assets/fonts/geist-latin.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:"Geist";font-weight:100 900;font-display:block;src:url(assets/fonts/geist-latin-ext.woff2) format("woff2");unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
+
+:root{--orange:#ff8a00;--ink:#0d0d0d;--muted:#a3a3a3;--ice:#c8f1ff;--cyan:#7fd6ff;--blue:#3a6cf4;--bbw-bg:#16171a}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;background:#000;overflow:hidden;cursor:none}
+#stage{position:absolute;left:50%;top:50%;width:1080px;height:1920px;overflow:hidden;background:#000;transform-origin:50% 50%;transform:translate(-50%,-50%) scale(var(--s,1))}
+.slide{position:absolute;inset:0;overflow:hidden;opacity:0;visibility:hidden;transition:opacity .5s ease-in-out,visibility 0s linear .5s}
+.slide.on{opacity:1;visibility:visible;transition:opacity .5s ease-in-out .5s,visibility 0s linear .5s}
+.slide:not(.on) *{animation-play-state:paused!important}
+#bar{position:absolute;left:0;bottom:0;width:100%;height:8px;background:var(--orange);transform-origin:0 50%;transform:scaleX(0);z-index:10}
+.tnum{font-variant-numeric:tabular-nums}
+
+/* ---------- 1 · Building Better Worlds ---------- */
+.bbw{background:var(--bbw-bg);color:#fff;font-family:"JetBrains Mono",ui-monospace,monospace}
+.bbw .glow{position:absolute;left:-560px;top:-120px;width:2200px;height:2160px;background:url(assets/hero-glow.png) center/cover no-repeat;opacity:.9;animation:drift 26s ease-in-out infinite alternate}
+@keyframes drift{from{transform:translate3d(0,0,0) scale(1)}to{transform:translate3d(120px,-60px,0) scale(1.08)}}
+.noise{position:absolute;inset:0;background:url(assets/noise.png) 0 0/256px 256px repeat;opacity:.16;pointer-events:none}
+#globe{position:absolute;left:40px;top:250px;width:1000px;height:1000px}
+.bbw-top{position:absolute;left:0;right:0;top:96px;display:flex;align-items:center;justify-content:center;gap:34px}
+.bbw-top .x{font-size:34px;color:rgba(255,255,255,.55)}
+.lg-proximata{height:42px}.lg-hoiv{height:58px}.lg-start{height:62px}
+.title{position:absolute;left:90px;top:478px;width:900px;height:443px;-webkit-mask:url(assets/title-3-line.svg) 0 0/100% 100% no-repeat;mask:url(assets/title-3-line.svg) 0 0/100% 100% no-repeat}
+.title canvas{position:absolute;inset:0;width:100%;height:100%}
+.title .shine{position:absolute;top:0;left:0;height:100%;width:300%;display:none;background:linear-gradient(105deg,#1a4fd0 0%,#5aa8ff 12%,#e9f8ff 18%,#7cc8ff 24%,#2459e0 36%,#9fdcff 48%,#ffffff 53%,#6fb8ff 58%,#1d50d6 70%,#8fd4ff 82%,#f2fbff 87%,#4f98f5 93%,#1a4fd0 100%);animation:shine 9s linear infinite}
+@keyframes shine{from{transform:translate3d(0,0,0)}to{transform:translate3d(-66.666%,0,0)}}
+.lite .title canvas{display:none}.lite .title .shine{display:block}
+.tagline{position:absolute;left:0;right:0;top:968px;text-align:center;font:400 54px/1.1 "Archivo Black",sans-serif;letter-spacing:.2px}
+.tiles{position:absolute;left:60px;right:60px;top:1078px;display:grid;grid-template-columns:1fr 1.25fr 1fr;gap:14px}
+.tiles div{background:rgba(22,22,24,.82);border:1px solid rgba(255,255,255,.08);padding:22px 10px 24px;text-align:center}
+.tiles span{display:block;font-size:20px;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,.55);margin-bottom:12px}
+.tiles b{font-weight:500;font-size:29px;white-space:nowrap}
+.count{position:absolute;left:0;right:0;top:1330px;text-align:center}
+.count span{display:block;font-size:30px;letter-spacing:8px;text-transform:uppercase;color:var(--cyan);margin-bottom:22px}
+.count b{display:block;font-weight:700;font-size:150px;line-height:1;letter-spacing:-4px;color:#fff}
+.count .live{display:inline-flex;align-items:center;gap:22px;font:400 74px/1.1 "Archivo Black",sans-serif;letter-spacing:0}
+.count .live i{width:30px;height:30px;border-radius:50%;background:#ff3b3b;animation:pulse 1.6s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.25}}
+.tracks{position:absolute;left:0;right:0;top:1640px;text-align:center;font-size:27px;letter-spacing:1px;color:rgba(255,255,255,.72);line-height:1.6}
+.tracks em{font-style:normal;color:var(--ice)}
+
+/* ---------- 2 · HOIV ---------- */
+.hoiv{background:#000;font-family:Geist,system-ui,sans-serif;color:#fff}
+.ember{position:absolute;border-radius:50%;background:radial-gradient(circle,#ffd29a 0%,#ff9a2e 35%,rgba(255,120,20,0) 70%);animation:rise linear infinite}
+@keyframes rise{0%{transform:translate3d(0,0,0);opacity:0}12%{opacity:1}80%{opacity:.9}100%{transform:translate3d(var(--dx),-1100px,0);opacity:0}}
+.bokeh{position:absolute;border-radius:50%;background:radial-gradient(circle,rgba(255,110,30,.20) 0%,rgba(255,110,30,.07) 45%,rgba(255,110,30,0) 70%);animation:float 18s ease-in-out infinite alternate}
+@keyframes float{to{transform:translate3d(var(--dx),var(--dy),0)}}
+.hoiv .logo{position:absolute;left:100px;top:842px;width:880px;height:auto}
+.hoiv .role{position:absolute;left:0;right:0;top:1206px;text-align:center;font-size:34px;color:var(--muted);letter-spacing:.3px}
+.hoiv .role b{color:#fff;font-weight:600}
+
+/* ---------- 3 · Agenda ---------- */
+.agenda{background:var(--bbw-bg);color:#fff;font-family:"JetBrains Mono",ui-monospace,monospace}
+.agenda .glow{position:absolute;left:-700px;top:700px;width:2400px;height:1600px;background:url(assets/hero-glow.png) center/cover no-repeat;opacity:.55;-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 45%);mask-image:linear-gradient(to bottom,transparent 0,#000 45%)}
+.ag-head{position:absolute;left:72px;right:72px;top:96px;display:flex;justify-content:space-between;align-items:flex-start}
+.eyebrow{font-size:26px;letter-spacing:8px;text-transform:uppercase;color:var(--cyan)}
+.ag-head h1{margin-top:18px;font:400 84px/1.02 "Archivo Black",sans-serif}
+.clock{text-align:right}
+.clock b{display:block;font-weight:600;font-size:64px;line-height:1;letter-spacing:-1px}
+.clock span{display:block;margin-top:10px;font-size:26px;color:var(--muted)}
+.days{position:absolute;left:72px;right:72px;top:372px}
+.day{margin-bottom:34px}
+.day h2{display:flex;align-items:baseline;gap:22px;padding-bottom:16px;margin-bottom:8px;border-bottom:1px solid rgba(255,255,255,.14);font:400 40px/1 "Archivo Black",sans-serif;color:var(--ice)}
+.day h2 small{font:400 25px/1 "JetBrains Mono",monospace;letter-spacing:3px;text-transform:uppercase;color:var(--muted)}
+.item{position:relative;display:grid;grid-template-columns:186px 1fr;gap:6px 26px;padding:24px 26px 26px;margin:0 -26px;border:2px solid transparent;transition:opacity .4s}
+.item .t{font-weight:700;font-size:54px;line-height:1;letter-spacing:-1px}
+.item h3{font:400 38px/1.12 "Archivo Black",sans-serif}
+.item p{grid-column:2;font-size:24px;line-height:1.42;color:rgba(255,255,255,.66)}
+.item .tag{position:absolute;right:26px;top:24px;font-weight:700;font-size:22px;letter-spacing:3px;padding:8px 14px 7px;border-radius:4px;display:none}
+.item.past{opacity:.38}
+.item.now{border-color:var(--cyan);background:rgba(127,214,255,.09)}
+.item.now .tag{display:block;background:var(--cyan);color:#06141c}
+.item.next .tag{display:block;border:2px solid rgba(255,255,255,.5);color:#fff;padding:6px 12px 5px}
+.item.now h3,.item.next h3{padding-right:120px}
+
+/* ---------- 4 · Past hackathons ---------- */
+.photos{background:var(--ink);color:#fff;font-family:Geist,system-ui,sans-serif}
+.ph-head{position:absolute;left:30px;right:30px;top:92px}
+.ph-head .eyebrow{color:var(--orange);font-family:Geist,system-ui,sans-serif;font-weight:600;letter-spacing:6px}
+.ph-head h1{margin-top:16px;font-weight:700;font-size:92px;line-height:1;letter-spacing:-2px}
+.ph-head p{margin-top:20px;font-size:30px;color:var(--muted)}
+.grid{position:absolute;left:30px;top:420px;width:1020px;height:1290px;display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.col{display:flex;flex-direction:column;gap:20px}
+.tile{position:relative;overflow:hidden;border-radius:20px;background:#1f1f1f;flex:1 1 0}
+.tile img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;animation:kb 16s ease-in-out infinite alternate}
+@keyframes kb{from{transform:scale(1.0)}to{transform:scale(1.09)}}
+.tile figcaption{position:absolute;left:14px;bottom:14px;padding:8px 14px;border-radius:999px;background:rgba(0,0,0,.66);font-size:21px;font-weight:500;letter-spacing:.2px}
+.ph-foot{position:absolute;left:30px;right:30px;top:1756px;display:flex;align-items:center;gap:22px;font-size:32px;color:var(--muted)}
+.ph-foot img{height:54px}
+.ph-foot b{color:#fff;font-weight:600}
+
+/* ---------- 5 · Coming up at HOIV (as events.hoiv.me/screen) ---------- */
+.coming{background:var(--ink);color:#fff;font-family:Geist,system-ui,sans-serif}
+.cu-head{position:absolute;left:54px;right:54px;top:60px;display:flex;align-items:center;gap:28px;padding-bottom:42px;border-bottom:1px solid rgba(255,255,255,.1)}
+.cu-head .tilemark{flex:none;width:118px;height:118px;border-radius:26px;background:#fff;display:flex;align-items:center;justify-content:center}
+.cu-head .tilemark img{width:70px}
+.cu-head .what{flex:1;min-width:0}
+.cu-head h1{font-weight:600;font-size:58px;line-height:1.05;letter-spacing:-1px}
+.cu-head h1 em{font-style:normal;color:var(--orange)}
+.cu-head p{margin-top:14px;font-size:26px;color:var(--muted);white-space:nowrap}
+.cu-head .clock b{font-size:72px;font-family:Geist,system-ui,sans-serif}
+.rows{position:absolute;left:54px;right:54px;top:258px;height:1400px;display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:repeat(5,minmax(0,1fr))}
+.row{display:flex;align-items:center;gap:30px;border-bottom:1px solid rgba(255,255,255,.08);min-height:0;min-width:0}
+.row:last-child{border-bottom:0}
+.row img{flex:none;width:242px;height:242px;border-radius:22px;object-fit:cover;background:#1f1f1f}
+.row .txt{min-width:0;flex:1}
+.row .when{font-size:31px;font-weight:600;margin-bottom:10px;display:flex;align-items:center;gap:12px;white-space:nowrap}
+.row .when span{color:var(--muted);font-weight:500}
+.row .when.now{color:var(--orange)}
+.row .when.now::before{content:"";flex:none;width:16px;height:16px;border-radius:50%;background:var(--orange);animation:pulse 1.6s ease-in-out infinite}
+.row h3{font-weight:700;font-size:40px;line-height:1.12;letter-spacing:-.5px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.row h3.long{font-size:34px}
+.row .sum{margin-top:10px;font-size:27px;color:#d4d4d4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .place{margin-top:8px;font-size:25px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cu-foot{position:absolute;left:54px;right:54px;top:1690px;height:170px;border-radius:30px;background:#1c1c1c;display:flex;align-items:center;gap:36px;padding:0 30px}
+.cu-foot img{width:126px;height:126px;border-radius:14px;background:#fff;padding:9px}
+.cu-foot b{display:block;font-size:42px;font-weight:600}
+.cu-foot span{display:block;margin-top:8px;font-size:38px;color:var(--orange);font-weight:500}
+</style>
+</head>
+<body>
+<div id="stage">
+
+  <section class="slide bbw" data-id="bbw" data-ms="16000">
+    <div class="glow"></div>
+    <canvas id="globe" width="1000" height="1000"></canvas>
+    <div class="bbw-top">
+      <img class="lg-proximata" src="assets/proximata-wordmark.png" alt="proximata">
+      <span class="x">×</span>
+      <img class="lg-hoiv" src="assets/hoiv-logo-white.svg" alt="HOIV – Home of Innovation">
+      <span class="x">×</span>
+      <img class="lg-start" src="assets/start-vienna-white.png" alt="START Vienna">
+    </div>
+    <div class="title" role="img" aria-label="Building Better Worlds"><canvas id="liquid" width="720" height="354"></canvas><div class="shine"></div></div>
+    <p class="tagline">A 24h hackathon in Vienna</p>
+    <div class="tiles">
+      <div><span>Date</span><b>13–14 Nov 2026</b></div>
+      <div><span>Time</span><b>Fri 14:00 – Sat 18:00</b></div>
+      <div><span>Venue</span><b>HOIV, Vienna</b></div>
+    </div>
+    <div class="count" id="count"></div>
+    <p class="tracks">4 tracks · <em>Built space</em> · <em>Robotics</em><br><em>Agentic AI</em> · <em>Fintech, crypto &amp; payments</em></p>
+    <div class="noise"></div>
+  </section>
+
+  <section class="slide hoiv" data-id="hoiv" data-ms="9000">
+    <div id="embers"></div>
+    <img class="logo" src="assets/hoiv-logo-white.svg" alt="HOIV – Home of Innovation">
+    <p class="role">Co-organiser &amp; venue of <b>Building Better Worlds</b></p>
+  </section>
+
+  <section class="slide agenda" data-id="agenda" data-ms="16000">
+    <div class="glow"></div>
+    <div class="ag-head">
+      <div><p class="eyebrow">Agenda</p><h1>Two Days.<br>One Build.</h1></div>
+      <div class="clock"><b class="tnum" data-clock="time">--:--</b><span data-clock="date"></span></div>
+    </div>
+    <div class="days" id="days"></div>
+    <div class="noise"></div>
+  </section>
+
+  <section class="slide photos" data-id="photos" data-ms="13000">
+    <div class="ph-head">
+      <p class="eyebrow">Hackathons at HOIV</p>
+      <h1>Built here before.</h1>
+      <p>Hack-Nation · OpenClaw Hack_001 · START Hack Vienna</p>
+    </div>
+    <div class="grid">
+      <div class="col">
+        <figure class="tile"><img src="assets/photos/hacknation-group.jpg" alt="" style="object-position:50% 40%"><figcaption>Hack-Nation · Oct 2026</figcaption></figure>
+        <figure class="tile"><img src="assets/photos/hacknation-demo.jpg" alt="" style="object-position:55% 40%;animation-delay:-5s"><figcaption>Live demo · Hack-Nation</figcaption></figure>
+        <figure class="tile"><img src="assets/photos/starthack-winners.jpg" alt="" style="object-position:50% 35%;animation-delay:-9s"><figcaption>Winners · START Hack · Jun 2026</figcaption></figure>
+      </div>
+      <div class="col">
+        <figure class="tile" style="flex-grow:1.75"><img src="assets/photos/openclaw-beanbag.jpg" alt="" style="object-position:50% 45%;animation-delay:-3s"><figcaption>OpenClaw Hack_001 · Mar 2026</figcaption></figure>
+        <figure class="tile"><img src="assets/photos/openclaw-lobster.jpg" alt="" style="object-position:45% 45%;animation-delay:-11s"><figcaption>Overnight at OpenClaw</figcaption></figure>
+        <figure class="tile"><img src="assets/photos/openclaw-audience.jpg" alt="" style="object-position:50% 60%;animation-delay:-7s"><figcaption>Demo day · OpenClaw</figcaption></figure>
+      </div>
+    </div>
+    <div class="ph-foot"><img src="assets/hoiv-icon.svg" alt=""><p>This weekend: <b>Building Better Worlds</b></p></div>
+  </section>
+
+  <section class="slide coming" data-id="coming" data-ms="15000">
+    <div class="cu-head">
+      <div class="tilemark"><img src="assets/hoiv-icon.svg" alt="HOIV"></div>
+      <div class="what"><h1>Coming up at <em>HOIV</em></h1><p>Home of Innovation · Arsenalstraße 11, Vienna</p></div>
+      <div class="clock"><b class="tnum" data-clock="time">--:--</b><span data-clock="date"></span></div>
+    </div>
+    <div class="rows" id="rows"></div>
+    <div class="cu-foot"><img id="qr" src="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2025%2025%22%20shape-rendering%3D%22crispEdges%22%3E%3Cpath%20fill%3D%22%23ffffff%22%20d%3D%22M0%200h25v25H0z%22%2F%3E%3Cpath%20stroke%3D%22%23111111%22%20d%3D%22M0%200.5h7m1%200h3m2%200h1m2%200h1m1%200h7M0%201.5h1m5%200h1m1%200h1m1%200h3m1%200h1m1%200h1m1%200h1m5%200h1M0%202.5h1m1%200h3m1%200h1m2%200h2m1%200h4m2%200h1m1%200h3m1%200h1M0%203.5h1m1%200h3m1%200h1m1%200h2m3%200h2m3%200h1m1%200h3m1%200h1M0%204.5h1m1%200h3m1%200h1m2%200h1m1%200h1m3%200h2m1%200h1m1%200h3m1%200h1M0%205.5h1m5%200h1m3%200h3m1%200h1m1%200h1m1%200h1m5%200h1M0%206.5h7m1%200h1m1%200h1m1%200h1m1%200h1m1%200h1m1%200h7M8%207.5h1m1%200h1m3%200h1M0%208.5h1m1%200h2m1%200h3m2%200h2m3%200h2m1%200h1m2%200h1m1%200h2M1%209.5h2m1%200h2m1%200h4m1%200h2m2%200h2m1%200h1m3%200h1M0%2010.5h2m1%200h1m2%200h3m1%200h2m1%200h1m5%200h2M0%2011.5h1m2%200h3m2%200h1m1%200h4m1%200h1m2%200h1m2%200h2M1%2012.5h1m4%200h3m1%200h1m2%200h2m2%200h2m1%200h1m1%200h3M1%2013.5h1m1%200h1m1%200h1m1%200h1m3%200h1m1%200h3m1%200h4m3%200h1M1%2014.5h1m2%200h1m1%200h3m3%200h3m2%200h1m2%200h1m1%200h2M0%2015.5h1m1%200h1m2%200h1m1%200h3m2%200h1m1%200h1m2%200h4m3%200h1M3%2016.5h2m1%200h1m2%200h1m1%200h1m1%200h1m2%200h9M8%2017.5h1m1%200h1m1%200h2m1%200h2m3%200h1m1%200h1m1%200h1M0%2018.5h7m1%200h1m1%200h3m1%200h1m1%200h1m1%200h1m1%200h1m1%200h3M0%2019.5h1m5%200h1m1%200h1m1%200h1m1%200h1m2%200h2m3%200h1m2%200h2M0%2020.5h1m1%200h3m1%200h1m2%200h5m2%200h6m1%200h1M0%2021.5h1m1%200h3m1%200h1m1%200h1m3%200h2m1%200h1m1%200h2m1%200h5M0%2022.5h1m1%200h3m1%200h1m1%200h6m1%200h1m1%200h2m1%200h1m1%200h2M0%2023.5h1m5%200h1m2%200h1m5%200h1m1%200h2m1%200h1m1%200h1M0%2024.5h7m1%200h1m1%200h1m1%200h1m1%200h1m4%200h6%22%2F%3E%3C%2Fsvg%3E%0A" alt="QR code for events.hoiv.me"><div><b>Every event, and the sign-up</b><span>events.hoiv.me</span></div></div>
+  </section>
+
+  <div id="bar"></div>
+</div>
+
+<script>
+(() => {
+  'use strict';
+  const q = new URLSearchParams(location.search);
+  const stage = document.getElementById('stage');
+  const TZ = 'Europe/Vienna';
+
+  // ---- time: the real clock, or a pretend one (?now=…) that keeps running from there
+  const offset = q.get('now') ? Date.parse(q.get('now')) - Date.now() : 0;
+  const now = () => Date.now() + (Number.isFinite(offset) ? offset : 0);
+  const at = (s) => Date.parse(s);
+  const fmt = (o) => new Intl.DateTimeFormat('en-GB', { timeZone: TZ, ...o });
+  const fTime = fmt({ hour: '2-digit', minute: '2-digit' });
+  const fDate = fmt({ weekday: 'short', day: 'numeric', month: 'short' });
+
+  // ---- the stage: 1080x1920, as large as the screen allows
+  function fit() {
+    const s = Math.min(innerWidth / 1080, innerHeight / 1920);
+    stage.style.setProperty('--s', s);
+  }
+  addEventListener('resize', fit);
+  fit();
+
+  // ---- the programme (Vienna, CET = UTC+1)
+  const AGENDA = [
+    { day: 'Fri · 13 Nov', sub: 'Kick-off & build', items: [
+      { at: '2026-11-13T12:00:00+01:00', t: '12:00', title: 'Keynote panel with Hubert Rhomberg', text: 'The CEO of Rhomberg on stage at HOIV before the build starts.' },
+      { at: '2026-11-13T14:00:00+01:00', t: '14:00', title: 'Hackathon start', text: '24 hours to build something truly disruptive. Hacking runs through the night — you can stay at the venue.' },
+    ]},
+    { day: 'Sat · 14 Nov', sub: 'Pitch & award', items: [
+      { at: '2026-11-14T11:00:00+01:00', t: '11:00', title: 'n8n & Adaption workshops', text: 'An n8n workshop, plus 30 minutes online with an Adaption engineer on training a model from your own data.' },
+      { at: '2026-11-14T15:00:00+01:00', t: '15:00', title: 'Code freeze', text: 'Building stops and every team submits its project.' },
+      { at: '2026-11-14T16:00:00+01:00', t: '16:00', title: 'Winner announcement & demos', text: 'Each case partner picks a Track Winner, who pitches to a jury of VCs, founders and tech leads.' },
+      { at: '2026-11-14T18:00:00+01:00', t: '18:00', title: 'Closing', text: 'The hackathon wraps up, followed by networking.' },
+    ]},
+  ];
+  const ITEMS = AGENDA.flatMap((d) => d.items);
+  const END = at('2026-11-14T20:00:00+01:00'); // networking winds down
+
+  // ---- the countdown on the first slide, from the site's "T–00:00:00 // KICK-OFF"
+  const PHASES = [
+    { until: '2026-11-13T12:00:00+01:00', label: 'Keynote panel in' },
+    { until: '2026-11-13T14:00:00+01:00', label: 'Kick-off in' },
+    { until: '2026-11-14T15:00:00+01:00', label: 'Code freeze in' },
+    { until: '2026-11-14T16:00:00+01:00', label: 'Demos & winners in' },
+    { until: '2026-11-14T18:00:00+01:00', label: 'Happening now', live: 'Demos &amp; winners' },
+    { until: '2099-01-01T00:00:00+01:00', label: 'Thank you for', live: 'Building better worlds' },
+  ];
+  const pad = (n) => String(n).padStart(2, '0');
+  const countEl = document.getElementById('count');
+  let lastCount = '';
+  function renderCount() {
+    const t = now();
+    const p = PHASES.find((ph) => t < at(ph.until));
+    let html;
+    if (p.live) html = `<span>${p.label}</span><b class="live">${p.label === 'Happening now' ? '<i></i>' : ''}${p.live}</b>`;
+    else {
+      const s = Math.max(0, Math.floor((at(p.until) - t) / 1000));
+      html = `<span>${p.label}</span><b class="tnum">T–${pad(Math.floor(s / 3600))}:${pad(Math.floor(s / 60) % 60)}:${pad(s % 60)}</b>`;
+    }
+    if (html !== lastCount) { countEl.innerHTML = html; lastCount = html; }
+  }
+
+  // ---- the agenda, with what is on now and what comes next
+  const daysEl = document.getElementById('days');
+  daysEl.innerHTML = AGENDA.map((d) => `<div class="day"><h2>${d.day}<small>${d.sub}</small></h2>${
+    d.items.map((it) => `<div class="item" data-at="${it.at}"><span class="t tnum">${it.t}</span><h3>${it.title}</h3><p>${it.text}</p><span class="tag"></span></div>`).join('')
+  }</div>`).join('');
+  const itemEls = [...daysEl.querySelectorAll('.item')];
+  function renderAgenda() {
+    const t = now();
+    let cur = -1;
+    ITEMS.forEach((it, i) => { if (t >= at(it.at)) cur = i; });
+    if (t >= END) cur = ITEMS.length; // all done
+    itemEls.forEach((el, i) => {
+      const state = i < cur ? 'past' : i === cur ? 'now' : i === cur + 1 ? 'next' : '';
+      el.className = 'item' + (state ? ' ' + state : '');
+      el.querySelector('.tag').textContent = state === 'now' ? 'NOW' : state === 'next' ? 'NEXT' : '';
+    });
+  }
+
+  // ---- clocks
+  function renderClocks() {
+    const d = new Date(now());
+    document.querySelectorAll('[data-clock=time]').forEach((el) => { el.textContent = fTime.format(d); });
+    document.querySelectorAll('[data-clock=date]').forEach((el) => { el.textContent = fDate.format(d); });
+  }
+
+  // ---- coming up at HOIV: events.hoiv.me's list as of 13 Nov 2026
+  const ROWS = [{"title": "Building Better Worlds | HOIV x Proximata x START Hackathon", "summary": "24 hours of hands-on building on real challenges from real companies — built space, robotics, AI, fintech and crypto.", "date": "Fri 13 – Sat 14 Nov", "time": "12:00 – Sat 18:00", "place": "On the ground floor · meet at The Apples Room", "badge": null, "img": "assets/posters/8cbd1acc2e18ea42.webp", "start": "2026-11-13T12:00:00+01:00", "end": "2026-11-14T20:00:00+01:00"}, {"title": "I Was Wrong.", "summary": "Real people unpack decisions that looked right at the time — what they believed, what happened and when they realised they were wrong.", "date": "Thu 19 Nov", "time": "18:30–21:30", "place": null, "badge": null, "img": "assets/posters/3860290383669733.webp"}, {"title": "Pull Up a Chair", "summary": "One long table, a proper meal and an evening around the people of HOIV.", "date": "Thu 26 Nov", "time": "18:00–23:00", "place": null, "badge": "Members only", "img": "assets/posters/f7e0517e0ed100c4.webp"}, {"title": "First Advent at HOIV", "summary": "A family-friendly First Advent afternoon with virtual reality, waffles, punch and refurbished tech.", "date": "Sun 29 Nov", "time": "11:00–18:00", "place": null, "badge": null, "img": "assets/posters/0752b69127bcc5d7.webp"}, {"title": "Bad at Art? Perfect.", "summary": "An artist-led evening of wine, making and trying something new. No art experience required — seriously.", "date": "Mon 7 Dec", "time": "19:00–22:00", "place": "Coco Studio · side building", "badge": null, "img": "assets/posters/b4089c5565f41766.webp"}];
+    const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const rowsEl = document.getElementById('rows');
+  function renderRows() {
+    const t = now();
+    const rows = ROWS.filter((r) => !r.end || t < at(r.end));
+    const html = rows.slice(0, 5).map((r) => {
+      const live = r.start && t >= at(r.start) && t < at(r.end);
+      const day = live ? `<p class="when now">Now <span>${esc(r.time)}</span></p>` : `<p class="when">${esc(r.date)} <span>${esc(r.time)}</span></p>`;
+      const place = [r.place, r.badge].filter(Boolean).join(' · ');
+      return `<div class="row"><img src="${esc(r.img)}" alt=""><div class="txt">${day}<h3 class="${r.title.length > 40 ? 'long' : ''}">${esc(r.title)}</h3><p class="sum">${esc(r.summary)}</p>${place ? `<p class="place">${esc(place)}</p>` : ''}</div></div>`;
+    }).join('');
+    if (rowsEl.innerHTML !== html) rowsEl.innerHTML = html;
+  }
+
+  // ---- embers for the HOIV slide (transform/opacity only)
+  const embers = document.getElementById('embers');
+  const rnd = (a, b) => a + Math.random() * (b - a);
+  let eh = '';
+  for (let i = 0; i < 46; i++) {
+    const s = rnd(3, 9);
+    eh += `<i class="ember" style="left:${rnd(0, 1080)}px;top:${rnd(700, 2000)}px;width:${s}px;height:${s}px;--dx:${rnd(-140, 140)}px;animation-duration:${rnd(10, 24)}s;animation-delay:${-rnd(0, 24)}s"></i>`;
+  }
+  for (let i = 0; i < 7; i++) {
+    const s = rnd(140, 360);
+    eh += `<i class="bokeh" style="left:${rnd(-120, 900)}px;top:${rnd(-100, 1800)}px;width:${s}px;height:${s}px;--dx:${rnd(-90, 90)}px;--dy:${rnd(-120, 60)}px;animation-delay:${-rnd(0, 18)}s"></i>`;
+  }
+  embers.innerHTML = eh;
+
+  // ---- the liquid title: a small WebGL shader inside the site's title artwork
+  const lite = q.get('lite') === '1';
+  let gl = null, prog = null, uT = null;
+  const liquid = document.getElementById('liquid');
+  if (!lite) {
+    try {
+      gl = liquid.getContext('webgl', { antialias: false, alpha: false, powerPreference: 'low-power' });
+      const vs = 'attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}';
+      const fs = `precision mediump float;uniform vec2 r;uniform float t;
+        float h(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+        float n(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(h(i),h(i+vec2(1,0)),f.x),mix(h(i+vec2(0,1)),h(i+vec2(1,1)),f.x),f.y);}
+        float fbm(vec2 p){float v=0.,a=.5;for(int k=0;k<4;k++){v+=a*n(p);p=p*2.03+vec2(1.7,9.2);a*=.5;}return v;}
+        void main(){
+          vec2 uv=gl_FragCoord.xy/r.y*3.;
+          vec2 w=vec2(fbm(uv+vec2(0.,t*.06)),fbm(uv+vec2(5.2,1.3)-t*.05));
+          float f=fbm(uv+2.4*w+vec2(t*.03,0.));
+          float b=.5+.5*sin(f*17.+t*.5);
+          float s=pow(.5+.5*sin(f*9.-t*.35+uv.x*1.2),8.);
+          vec3 deep=vec3(.04,.16,.62),mid=vec3(.25,.6,1.),ice=vec3(.78,.94,1.);
+          vec3 c=mix(deep,mid,smoothstep(.1,.6,b));
+          c=mix(c,ice,smoothstep(.8,.99,b));
+          c+=s*vec3(.45,.55,.6);
+          c*=.82+.28*(gl_FragCoord.y/r.y);
+          gl_FragColor=vec4(c,1.);
+        }`;
+      const sh = (type, src) => { const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s); if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s)); return s; };
+      prog = gl.createProgram();
+      gl.attachShader(prog, sh(gl.VERTEX_SHADER, vs));
+      gl.attachShader(prog, sh(gl.FRAGMENT_SHADER, fs));
+      gl.linkProgram(prog);
+      if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) throw new Error('link');
+      gl.useProgram(prog);
+      const buf = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+      const loc = gl.getAttribLocation(prog, 'p');
+      gl.enableVertexAttribArray(loc);
+      gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+      gl.uniform2f(gl.getUniformLocation(prog, 'r'), liquid.width, liquid.height);
+      uT = gl.getUniformLocation(prog, 't');
+      gl.viewport(0, 0, liquid.width, liquid.height);
+    } catch (e) { gl = null; }
+  }
+  if (!gl) document.documentElement.classList.add('lite');
+  const drawLiquid = (ms) => { if (!gl) return; gl.uniform1f(uT, ms / 1000); gl.drawArrays(gl.TRIANGLES, 0, 3); };
+
+  // ---- the wireframe globe behind the title (canvas 2D, two strokes a frame)
+  const globe = document.getElementById('globe');
+  const g2 = globe.getContext('2d');
+  const W = globe.width, R = W * 0.47, C = W / 2, TILT = 0.36, ct = Math.cos(TILT), st = Math.sin(TILT);
+  function drawGlobe(ms) {
+    const rot = ms * 0.00011;
+    g2.clearRect(0, 0, W, W);
+    const front = new Path2D(), back = new Path2D();
+    const proj = (lat, lon) => {
+      const x = Math.cos(lat) * Math.sin(lon), y = Math.sin(lat), z = Math.cos(lat) * Math.cos(lon);
+      return [C + R * x, C - R * (y * ct - z * st), y * st + z * ct];
+    };
+    const line = (pts) => { for (let i = 1; i < pts.length; i++) { const a = pts[i - 1], b = pts[i]; const p = a[2] + b[2] > 0 ? front : back; p.moveTo(a[0], a[1]); p.lineTo(b[0], b[1]); } };
+    for (let m = 0; m < 12; m++) {
+      const lon = m * Math.PI / 6 + rot, pts = [];
+      for (let k = 0; k <= 32; k++) pts.push(proj(-Math.PI / 2 + k * Math.PI / 32, lon));
+      line(pts);
+    }
+    for (const latDeg of [-60, -30, 0, 30, 60]) {
+      const lat = latDeg * Math.PI / 180, pts = [];
+      for (let k = 0; k <= 64; k++) pts.push(proj(lat, k * Math.PI / 32 + rot));
+      line(pts);
+    }
+    g2.lineWidth = 1.6;
+    g2.strokeStyle = 'rgba(170,205,255,0.10)'; g2.stroke(back);
+    g2.strokeStyle = 'rgba(205,232,255,0.34)'; g2.stroke(front);
+    g2.beginPath(); g2.arc(C, C, R, 0, Math.PI * 2); g2.strokeStyle = 'rgba(205,232,255,0.26)'; g2.stroke();
+  }
+
+  // ---- one loop for the first slide's moving parts, ~30 fps, only while it shows
+  let animating = false, lastFrame = 0;
+  function frame(ms) {
+    if (!animating) return;
+    requestAnimationFrame(frame);
+    if (ms - lastFrame < 33) return;
+    lastFrame = ms;
+    drawGlobe(ms);
+    drawLiquid(ms);
+  }
+  function setAnimating(on) {
+    if (on && !animating) { animating = true; requestAnimationFrame(frame); }
+    if (!on) animating = false;
+  }
+
+  // ---- the show
+  const all = [...document.querySelectorAll('.slide')];
+  const byId = Object.fromEntries(all.map((s) => [s.dataset.id, s]));
+  const order = (q.get('slides') || 'bbw,hoiv,agenda,photos,coming').split(',').map((s) => s.trim()).filter((s) => byId[s]);
+  const seq = order.length ? order : ['bbw'];
+  const speed = Math.max(0.2, parseFloat(q.get('speed')) || 1);
+  const hold = q.get('hold');
+  const bar = document.getElementById('bar');
+  let step = 0, timer = null;
+
+  function show(id) {
+    const el = byId[id];
+    all.forEach((s) => s.classList.toggle('on', s === el));
+    setAnimating(id === 'bbw');
+    if (id === 'bbw') { drawGlobe(performance.now()); drawLiquid(performance.now()); }
+    const ms = hold ? 0 : Number(el.dataset.ms) * speed;
+    bar.style.transition = 'none';
+    bar.style.transform = 'scaleX(0)';
+    if (ms) {
+      void bar.offsetWidth;
+      bar.style.transition = `transform ${ms + 1000}ms linear`;
+      bar.style.transform = 'scaleX(1)';
+      clearTimeout(timer);
+      timer = setTimeout(() => { step = (step + 1) % seq.length; show(seq[step]); }, ms + 1000);
+    }
+  }
+
+  function tick() { renderClocks(); renderCount(); renderAgenda(); renderRows(); }
+  tick();
+  setInterval(tick, 1000);
+
+  // A screen left on all weekend picks up any change to this page: reload every three hours,
+  // but only when the page answers, so a dropped network never leaves an error on the wall.
+  setInterval(() => {
+    fetch(location.href, { cache: 'no-store' }).then((r) => { if (r.ok) location.reload(); }).catch(() => {});
+  }, 3 * 60 * 60 * 1000);
+
+  const start = () => show(hold && byId[hold] ? hold : seq[0]);
+  Promise.race([document.fonts.ready, new Promise((r) => setTimeout(r, 2500))]).then(start);
+})();
+</script>
+</body>
+</html>
