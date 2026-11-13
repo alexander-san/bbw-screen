@@ -13,7 +13,7 @@
   that is showing. Everything it needs is in assets/, so a dropped network never blanks it.
 
   Address options (all optional):
-    ?slides=bbw,setup,hoiv,agenda,photos,coming   which slides, in which order (by default the
+    ?slides=bbw,setup,where,hoiv,agenda,photos,coming   which slides, in which order (by default the
                                                   setup QR shows twice a round until Fri 16:00)
     ?speed=1.5                              multiply every slide's time
     ?hold=agenda                            stay on one slide (for checking)
@@ -83,6 +83,33 @@ html,body{width:100%;height:100%;background:#000;overflow:hidden;cursor:none}
 .setup h3{position:absolute;left:0;right:0;top:1290px;font:400 76px/1.05 "Archivo Black",sans-serif}
 .setup p{position:absolute;left:60px;right:60px;top:1404px;font-size:36px;line-height:1.5;color:rgba(255,255,255,.7)}
 .setup .url{position:absolute;left:0;right:0;top:1590px;font-size:38px;font-weight:600;color:var(--cyan);letter-spacing:.5px}
+
+/* ---------- Where to hack: HOIV Plan's floors, stacked (orthographic CSS 3D, compositor-only) ---------- */
+.where{background:var(--bbw-bg);color:#fff;font-family:"JetBrains Mono",ui-monospace,monospace}
+.where .glow{position:absolute;left:-700px;top:960px;width:2400px;height:1700px;background:url(assets/hero-glow.png) center/cover no-repeat;opacity:.42;-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 40%);mask-image:linear-gradient(to bottom,transparent 0,#000 40%)}
+.wh-head{position:absolute;left:72px;right:72px;top:96px}
+.wh-head h1{margin-top:18px;font:400 84px/1.02 "Archivo Black",sans-serif}
+.rig{position:absolute;left:60px;top:858px;width:960px;height:300px;transform-style:preserve-3d;transform:rotateX(58deg) rotateZ(-32deg)}
+.floor{position:absolute;inset:0;transform-style:preserve-3d;transform:translateZ(calc(var(--z) * 6px));transition:transform 1.6s cubic-bezier(.2,.8,.2,1) calc(.55s + var(--i) * 90ms)}
+.slide.on .floor{transform:translateZ(calc(var(--z) * 30px))}
+.floor img{position:absolute;inset:0;width:100%;height:100%}
+.pin{position:absolute;width:0;height:0;transform-style:preserve-3d;transform:rotateZ(32deg) rotateX(-58deg);opacity:0;transition:opacity .6s ease .3s}
+.slide.on .pin{opacity:1;transition-delay:2.1s}
+.pin::before{content:"";position:absolute;left:-8px;top:-8px;width:16px;height:16px;border-radius:50%;background:#e8f8ff;box-shadow:0 0 0 5px rgba(94,196,255,.45)}
+.pin::after{content:"";position:absolute;left:-1px;top:-74px;width:2px;height:66px;background:#bfe8ff}
+.pin b{position:absolute;left:0;top:-74px;transform:translate(-50%,-100%);white-space:nowrap;padding:9px 16px 10px;background:rgba(8,16,26,.9);border:2px solid rgba(127,214,255,.75);font-weight:600;font-size:27px;line-height:1.15;color:#eef9ff;text-align:center}
+.pin b small{display:block;font-size:20px;font-weight:500;letter-spacing:3px;text-transform:uppercase;color:var(--cyan)}
+.pin.right b{transform:translate(-24%,-100%)}
+.wh-cards{position:absolute;left:72px;right:72px;top:1380px;display:grid;grid-template-columns:1fr 1fr;gap:22px}
+.wh-cards div{border-top:3px solid var(--cyan);padding-top:22px}
+.wh-cards h3{font:400 40px/1 "Archivo Black",sans-serif;color:var(--ice)}
+.wh-cards h3 small{display:block;margin-top:10px;font:500 21px/1 "JetBrains Mono",monospace;letter-spacing:3px;text-transform:uppercase;color:var(--muted)}
+.wh-cards p{margin-top:18px;font-size:25px;line-height:1.6;color:rgba(255,255,255,.8)}
+.legend{position:absolute;left:72px;right:72px;top:1760px;display:flex;align-items:center;gap:18px;font-size:23px;color:var(--muted)}
+.legend i{display:inline-block;width:34px;height:22px;border:1px solid rgba(255,255,255,.35)}
+.legend i.hack{background:#3f94c9;border-color:#8fd3ff}
+.legend i.priv{background:repeating-linear-gradient(45deg,rgba(159,180,200,.55) 0 2px,transparent 2px 7px)}
+.legend i+span{margin-right:26px}
 
 /* ---------- 3 · Agenda ---------- */
 .agenda{background:var(--bbw-bg);color:#fff;font-family:"JetBrains Mono",ui-monospace,monospace}
@@ -186,6 +213,32 @@ html,body{width:100%;height:100%;background:#000;overflow:hidden;cursor:none}
     <h3>Join Discord</h3>
     <p>Briefs, mentors, submissions<br>&amp; many more benefits</p>
     <p class="url">onboarding.hoiv.me/hack</p>
+    <div class="noise"></div>
+  </section>
+
+  <section class="slide where" data-id="where" data-ms="16000">
+    <div class="glow"></div>
+    <div class="wh-head">
+      <p class="eyebrow">Where to hack</p>
+      <h1>Ground floor<br>&amp; 4th floor.</h1>
+    </div>
+    <div class="rig" role="img" aria-label="HOIV's building, floor by floor: the ground floor and the 4th floor are where to hack">
+      <div class="floor" style="--z:16.237;--i:5"><img src="assets/plan/DG.svg" alt=""></div>
+      <div class="floor" style="--z:13.02;--i:4"><img src="assets/plan/4OG.svg" alt="">
+        <div class="pin" style="left:26.69%;top:65.53%"><b>Startup Floor<small>4th floor</small></b></div>
+      </div>
+      <div class="floor" style="--z:9.78;--i:3"><img src="assets/plan/3OG.svg" alt=""></div>
+      <div class="floor" style="--z:6.54;--i:2"><img src="assets/plan/2OG.svg" alt=""></div>
+      <div class="floor" style="--z:3.3;--i:1"><img src="assets/plan/1OG.svg" alt=""></div>
+      <div class="floor" style="--z:0;--i:0"><img src="assets/plan/EG.svg" alt="">
+        <div class="pin right" style="left:10.26%;top:55.11%"><b>The Apples Room<small>Meet here · ground floor</small></b></div>
+      </div>
+    </div>
+    <div class="wh-cards">
+      <div><h3>4th floor<small>Lift or stairs · 4.OG</small></h3><p>Startup Floor<br>Ten Forward<br>Tres Comas · Ready Room<br>Holodeck · Milliways kitchen</p></div>
+      <div><h3>Ground floor<small>Main entrance · EG</small></h3><p>The Apples Room<br>The Runway<br>Room of Requirement<br>Harvard · startuplive<br>Pinocchio's Kitchen</p></div>
+    </div>
+    <p class="legend"><i class="hack"></i><span>Hack zones</span><i class="priv"></i><span>Offices · please keep out</span></p>
     <div class="noise"></div>
   </section>
 
@@ -455,7 +508,7 @@ html,body{width:100%;height:100%;background:#000;overflow:hidden;cursor:none}
   const SETUP_TWICE_UNTIL = at('2026-11-13T16:00:00+01:00');
   const custom = q.get('slides') ? ids(q.get('slides')) : [];
   const sequence = () => custom.length ? custom
-    : ids(now() < SETUP_TWICE_UNTIL ? 'bbw,setup,hoiv,agenda,setup,photos,coming' : 'bbw,setup,hoiv,agenda,photos,coming');
+    : ids(now() < SETUP_TWICE_UNTIL ? 'bbw,setup,where,hoiv,agenda,setup,photos,coming' : 'bbw,setup,where,hoiv,agenda,photos,coming');
   const speed = Math.max(0.2, parseFloat(q.get('speed')) || 1);
   const hold = q.get('hold');
   const bar = document.getElementById('bar');
