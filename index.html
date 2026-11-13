@@ -13,7 +13,8 @@
   that is showing. Everything it needs is in assets/, so a dropped network never blanks it.
 
   Address options (all optional):
-    ?slides=bbw,setup,hoiv,agenda,photos,coming   which slides, in which order
+    ?slides=bbw,setup,hoiv,agenda,photos,coming   which slides, in which order (by default the
+                                                  setup QR shows twice a round until Fri 16:00)
     ?speed=1.5                              multiply every slide's time
     ?hold=agenda                            stay on one slide (for checking)
     ?now=2026-11-14T15:30:00%2B01:00        pretend it is that time (for checking)
@@ -133,19 +134,19 @@ html,body{width:100%;height:100%;background:#000;overflow:hidden;cursor:none}
 .cu-head h1 em{font-style:normal;color:var(--orange)}
 .cu-head p{margin-top:14px;font-size:26px;color:var(--muted);white-space:nowrap}
 .cu-head .clock b{font-size:72px;font-family:Geist,system-ui,sans-serif}
-.rows{position:absolute;left:54px;right:54px;top:258px;height:1400px;display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:repeat(3,minmax(0,1fr))}
+.rows{position:absolute;left:54px;right:54px;top:258px;height:1400px;display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:repeat(2,minmax(0,1fr))}
 .row{display:flex;align-items:center;gap:30px;border-bottom:1px solid rgba(255,255,255,.08);min-height:0;min-width:0}
 .row:last-child{border-bottom:0}
-.row img{flex:none;width:330px;height:330px;border-radius:26px;object-fit:cover;background:#1f1f1f}
+.row img{flex:none;width:440px;height:440px;border-radius:30px;object-fit:cover;background:#1f1f1f}
 .row .txt{min-width:0;flex:1}
-.row .when{font-size:36px;font-weight:600;margin-bottom:14px;display:flex;align-items:center;gap:12px;white-space:nowrap}
+.row .when{font-size:40px;font-weight:600;margin-bottom:16px;display:flex;flex-wrap:wrap;align-items:baseline;column-gap:14px}
 .row .when span{color:var(--muted);font-weight:500}
 .row .when.now{color:var(--orange)}
 .row .when.now::before{content:"";flex:none;width:16px;height:16px;border-radius:50%;background:var(--orange)}
-.row h3{font-weight:700;font-size:50px;line-height:1.1;letter-spacing:-.8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.row h3.long{font-size:42px}
-.row .sum{margin-top:14px;font-size:30px;line-height:1.35;color:#d4d4d4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.row .place{margin-top:12px;font-size:28px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row h3{font-weight:700;font-size:60px;line-height:1.06;letter-spacing:-1px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.row h3.long{font-size:50px}
+.row .sum{margin-top:18px;font-size:33px;line-height:1.35;color:#d4d4d4;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+.row .place{margin-top:14px;font-size:31px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .cu-foot{position:absolute;left:54px;right:54px;top:1690px;height:170px;border-radius:30px;background:#1c1c1c;display:flex;align-items:center;gap:36px;padding:0 30px}
 .cu-foot img{width:126px;height:126px;border-radius:14px;background:#fff;padding:9px}
 .cu-foot b{display:block;font-size:42px;font-weight:600}
@@ -331,9 +332,9 @@ html,body{width:100%;height:100%;background:#000;overflow:hidden;cursor:none}
   const rowsEl = document.getElementById('rows');
   function renderRows() {
     const t = now();
-    // The next three: events that have not started yet (the rest of the screen is Building Better Worlds).
+    // The next two: events that have not started yet (the rest of the screen is Building Better Worlds).
     const rows = ROWS.filter((r) => !r.start || t < at(r.start));
-    const html = rows.slice(0, 3).map((r) => {
+    const html = rows.slice(0, 2).map((r) => {
       const live = r.start && t >= at(r.start) && t < at(r.end);
       const day = live ? `<p class="when now">Now <span>${esc(r.time)}</span></p>` : `<p class="when">${esc(r.date)} <span>${esc(r.time)}</span></p>`;
       const place = [r.place, r.badge].filter(Boolean).join(' · ');
@@ -449,8 +450,12 @@ html,body{width:100%;height:100%;background:#000;overflow:hidden;cursor:none}
   // ---- the show
   const all = [...document.querySelectorAll('.slide')];
   const byId = Object.fromEntries(all.map((s) => [s.dataset.id, s]));
-  const order = (q.get('slides') || 'bbw,setup,hoiv,agenda,photos,coming').split(',').map((s) => s.trim()).filter((s) => byId[s]);
-  const seq = order.length ? order : ['bbw'];
+  const ids = (list) => list.split(',').map((s) => s.trim()).filter((s) => byId[s]);
+  // Until two hours after kick-off, while people are still getting set up, the setup QR shows twice a round.
+  const SETUP_TWICE_UNTIL = at('2026-11-13T16:00:00+01:00');
+  const custom = q.get('slides') ? ids(q.get('slides')) : [];
+  const sequence = () => custom.length ? custom
+    : ids(now() < SETUP_TWICE_UNTIL ? 'bbw,setup,hoiv,agenda,setup,photos,coming' : 'bbw,setup,hoiv,agenda,photos,coming');
   const speed = Math.max(0.2, parseFloat(q.get('speed')) || 1);
   const hold = q.get('hold');
   const bar = document.getElementById('bar');
@@ -469,7 +474,7 @@ html,body{width:100%;height:100%;background:#000;overflow:hidden;cursor:none}
       bar.style.transition = `transform ${ms + 1000}ms linear`;
       bar.style.transform = 'scaleX(1)';
       clearTimeout(timer);
-      timer = setTimeout(() => { step = (step + 1) % seq.length; show(seq[step]); }, ms + 1000);
+      timer = setTimeout(() => { const seq = sequence(); step = (step + 1) % seq.length; show(seq[step]); }, ms + 1000);
     }
   }
 
@@ -483,7 +488,7 @@ html,body{width:100%;height:100%;background:#000;overflow:hidden;cursor:none}
     fetch(location.href, { cache: 'no-store' }).then((r) => { if (r.ok) location.reload(); }).catch(() => {});
   }, 3 * 60 * 60 * 1000);
 
-  const start = () => show(hold && byId[hold] ? hold : seq[0]);
+  const start = () => show(hold && byId[hold] ? hold : sequence()[0]);
   Promise.race([document.fonts.ready, new Promise((r) => setTimeout(r, 2500))]).then(start);
 })();
 </script>
